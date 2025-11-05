@@ -58,7 +58,8 @@ function ReadStoryPage() {
   const progress = ((currentPage + 1) / story.storyContent.length) * 100;
 
   return (
-    <div className="max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg">
+    <div className="h-full overflow-y-auto">
+      <div className="max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg min-h-full">
       <div className="mb-6 h-2 bg-gray-200 rounded-full">
         <div
           className="h-2 bg-blue-500 rounded-full transition-all duration-300 ease-in-out"
@@ -136,6 +137,7 @@ function ReadStoryPage() {
             <ChevronRight className="ml-2" size={24} />
           </button>
         )}
+      </div>
       </div>
     </div>
   );

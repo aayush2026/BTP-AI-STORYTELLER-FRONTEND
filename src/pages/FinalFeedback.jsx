@@ -31,7 +31,7 @@ function FinalFeedback() {
   }, [aid]);
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 py-12">
+    <div className="h-full bg-gradient-to-b from-purple-50 to-pink-50 py-12 overflow-y-auto">
       <ReadingFeedback
         title={audio?.story.storyTitle}
         transcription={audio?.audio.transcript}
