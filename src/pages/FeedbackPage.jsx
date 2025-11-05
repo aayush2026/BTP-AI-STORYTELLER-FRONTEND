@@ -3,6 +3,7 @@ import FeedbackCard from "../components/FeedbackCard";
 import FeedbackHeader from "../components/FeedbackHeader";
 import { useParams } from "react-router-dom";
 import { MoonLoader } from "react-spinners";
+import axios from "axios";
 
 const sampleQuestions = [
   {
@@ -28,24 +29,25 @@ const sampleQuestions = [
 function FeedbackPage() {
   const { sid } = useParams();
   const [loading, setLoading] = useState(true);
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [feedback, setFeedback] = useState([]);
+
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     // Fetch feedback from the backend
     const fetchFeedback = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `${BACKEND_URL}/api/story/getFeedback/${sid}`,
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
-        const data = await response.json();
-        console.log("Fetched feedback:", data?.feedback.feedbacks);
-        setFeedback(data?.feedback.feedbacks || []);
+        const response = await axios.get(`${BACKEND_URL}/api/story/getFeedback/${sid}`, {
+          withCredentials: true, // Axios uses withCredentials instead of credentials
+        });
+        if (response.status === 200) {
+          const data = response.data; // Axios already parses JSON, use response.data
+          console.log("Fetched feedback:", data?.feedback.feedbacks);
+          setFeedback(data?.feedback.feedbacks || []);
+        } else {
+          console.error("Failed to fetch feedback: ", response.statusText);
+        }
       } catch (error) {
         console.error("Error fetching feedback:", error);
       } finally {

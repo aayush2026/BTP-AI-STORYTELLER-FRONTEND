@@ -5,16 +5,16 @@ import { UserContext } from "@/context/UserContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import axios from "axios";
 
 function DashboardPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-  const [stories, setStories] = useState([]);
   const navigate = useNavigate();
   const toggleModal = () => setIsModalOpen(!isModalOpen);
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(false);
   const { user, setUser } = useContext(UserContext);
-
   const [storyDetails, setStoryDetails] = useState({
     storyTitle: "",
     storyDescription: "",
@@ -22,25 +22,26 @@ function DashboardPage() {
     maxPages: 0,
     childAge: user.childAge,
   });
+  
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  
   const handleSubmit = async (e) => {
     setLoading(true);
     try {
       e.preventDefault();
-      const response = await fetch(`${BACKEND_URL}/api/story/create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(storyDetails),
-        credentials: "include",
+      // Create the story
+      const response = await axios.post(`${BACKEND_URL}/api/story/create`, storyDetails, {
+        withCredentials: true, // Axios uses withCredentials instead of credentials
       });
       if (response.status === 201) {
-        const data = await response.json();
+        const data = response.data; // Axios already parses JSON, use response.data
         const storyId = data.story._id;
+        
         navigate(`/dashboard/${storyId}/ReadStory`);
-
         console.log(data);
         toggleModal();
+      } else {
+        console.error("Failed to create story: ", response.statusText);
       }
     } catch (error) {
       console.error("Error creating story:", error);
@@ -53,21 +54,17 @@ function DashboardPage() {
     const fetchStories = async () => {
       try {
         if (!user?.userId) return;
-        const response = await fetch(
-          `${BACKEND_URL}/api/story/stories/${user?.userId}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-          }
-        );
+        const response = await axios.get(`${BACKEND_URL}/api/story/stories/${user?.userId}`, {
+          withCredentials: true, // Axios uses withCredentials instead of credentials
+        });
+
         if (response.status === 200) {
-          const data = await response.json();
+          const data = response.data; // Axios already parses JSON, use response.data
           setStories(data.stories);
 
           console.log(data);
+        } else {
+          console.error("Failed to fetch stories: ", response.statusText);
         }
       } catch (error) {
         console.error("Error fetching stories:", error);
@@ -76,6 +73,8 @@ function DashboardPage() {
 
     fetchStories(); // Call the function to fetch stories
   }, [user?.userId, BACKEND_URL]);
+
+  // Check if the user is logged in
   if (!user) {
     return null;
   }

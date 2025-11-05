@@ -21,7 +21,9 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/auth" element={user ? <DashboardPage /> : <AuthPage />} />
+        <Route 
+          path="/auth" 
+          element={user ? <DashboardPage /> : <AuthPage />} />
         <Route
           path="/dashboard"
           element={user ? <DashboardPage /> : <AuthPage />}

@@ -5,30 +5,30 @@ import { AuthContext } from "@/context/AuthContext";
 import { UserContext } from "@/context/UserContext";
 import { toast } from "sonner";
 import { Button } from "../button";
+import axios from "axios";
 
 function LoginForm() {
   const [signUpInfo, setLoginInfo] = useState({
     parentEmail: "",
-
     password: "",
   });
-  const navigate = useNavigate();
+
   const { user, setUser } = useContext(UserContext);
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  const { authState, toggleAuthState } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
-      const response = await fetch(`${BACKEND_URL}/api/user/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(signUpInfo),
-        credentials: "include",
+      const response = await axios.post(`${BACKEND_URL}/api/user/login`, signUpInfo, {
+        withCredentials: true, // Axios uses withCredentials instead of credentials
       });
-      const data = await response.json();
+
+      const data = response.data; // Axios already parses JSON, use response.data
       if (data.error) {
         toast.error(data.error);
         return;
@@ -44,7 +44,6 @@ function LoginForm() {
       setLoading(false);
     }
   };
-  const { authState, toggleAuthState } = useContext(AuthContext);
 
   return (
     <div className="max-w-md w-full bg-white shadow-md rounded-lg p-8 mx-auto my-[80px]">

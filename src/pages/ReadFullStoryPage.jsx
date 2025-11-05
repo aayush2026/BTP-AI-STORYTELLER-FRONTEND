@@ -5,33 +5,29 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const ReadFullStoryPage = () => {
+  const [isLoaded, setIsLoaded] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [audioBlob, setAudioBlob] = useState(null);
   const [audioList, setAudioList] = useState([]);
   const [story, setStory] = useState("");
-  const { sid } = useParams();
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [loading, setLoading] = useState(false);
   const [aid, setAid] = useState();
-  const [isLoaded, setIsLoaded] = useState(false);
+  const { sid } = useParams();
   const navigate = useNavigate();
+
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     const getStory = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `${BACKEND_URL}/api/story/getFullStory/${sid}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-          }
-        );
-        const data = await response.json();
+
+        const response = await axios.get(`${BACKEND_URL}/api/story/getFullStory/${sid}`, {
+          withCredentials: true, // Axios uses withCredentials instead of credentials
+        });
+        
+        const data = response.data; // Axios already parses JSON, use response.data
         setStory(data.wholeStory);
         console.log(data);
       } catch (error) {
@@ -76,10 +72,8 @@ const ReadFullStoryPage = () => {
 
     try {
       setIsLoaded(true);
-      const response = await fetch(`${BACKEND_URL}/upload/${sid}`, {
-        method: "POST",
-        body: formData,
-      });
+
+      const response = await axios.post(`${BACKEND_URL}/upload/${sid}`, formData);
       if (response.status === 201) {
         console.log("Audio uploaded successfully");
         const data = await response.json();
@@ -94,6 +88,8 @@ const ReadFullStoryPage = () => {
       setIsLoaded(false);
     }
   };
+
+  // Update the aid when it is set
   useEffect(() => {
     if (aid) {
       console.log("Updated aid:", aid);
@@ -107,16 +103,16 @@ const ReadFullStoryPage = () => {
   //   const data = await res.json();
   //   console.log(data);
   // };
+
+  
   const viewResults = async () => {
     if (!aid) {
       console.error("Error: aid is undefined");
       return;
     }
     try {
-      const res = await fetch(`http://127.0.0.1:8000/process-audio/${aid}`, {
-        method: "GET",
-      });
-      const data = await res.json();
+      const response = await axios.get(`http://127.0.0.1:8000/process-audio/${aid}`);
+      const data = await response.json();
       console.log(data);
       navigate(`/dashboard/FinalFeedback/${aid}`);
     } catch (error) {

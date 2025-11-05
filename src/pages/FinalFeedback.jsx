@@ -2,32 +2,34 @@ import React, { useEffect } from "react";
 import ReadingFeedback from "@/components/ReadingFeedback";
 import { useParams } from "react-router-dom";
 import { useState } from "react";
+import axios from "axios";
 
 function FinalFeedback() {
   const { aid } = useParams();
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [audio, setAudio] = useState();
+
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  
   useEffect(() => {
     const getFeedback = async () => {
       try {
-        const response = await fetch(
-          `${BACKEND_URL}/audio/finalFeedback/${aid}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        const data = await response.json();
-        console.log(data);
-        setAudio(data);
+        const response = await axios.get(`${BACKEND_URL}/audio/finalFeedback/${aid}`, {
+          withCredentials: true, // Axios uses withCredentials instead of credentials
+        });
+        if (response.status === 200) {
+          const data = response.data; // Axios already parses JSON, use response.data
+          console.log(data);
+          setAudio(data);
+        } else {
+          console.error("Failed to fetch feedback: ", response.statusText);
+        }
       } catch (error) {
         console.error("Error fetching feedback:", error);
       }
     };
     getFeedback();
   }, [aid]);
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-pink-50 py-12">
       <ReadingFeedback
