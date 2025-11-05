@@ -5,6 +5,7 @@ import QuestionCard from "@/components/QuestionCard";
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { MoonLoader } from "react-spinners";
+import axios from "axios";
 /* const questions = [
   "Tell me about your favorite magical creature. What makes it special?",
   "If you could explore any place in the world, where would you go and why?",
@@ -73,13 +74,14 @@ export default function Assessment() {
       recognitionInstance.interimResults = true;
 
       recognitionInstance.onresult = (event) => {
-        const transcript = Array.from(event.results)
-          .map((result) => result[0].transcript)
-          .join("");
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
 
         setCurrentTranscript(transcript);
 
-        const wordCount = transcript.trim().split(/\s+/).length;
+        const wordCount = transcript.trim().split(/\s+/).filter(word => word.length > 0).length;
         setCanProceed(wordCount >= 5);
 
         console.log(
@@ -88,6 +90,27 @@ export default function Assessment() {
         );
         console.log("Word count:", wordCount);
       };
+
+      recognitionInstance.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        setIsRecording(false);
+        if (event.error === 'no-speech') {
+          console.log("No speech detected");
+        } else if (event.error === 'not-allowed') {
+          alert("Microphone permission denied. Please allow microphone access.");
+        } else if (event.error === 'aborted') {
+          console.log("Recognition aborted");
+        }
+      };
+
+      recognitionInstance.onend = () => {
+        // Recognition ended (either by user or automatically)
+        // Use a small delay to ensure state is updated properly
+        setTimeout(() => {
+          setIsRecording(false);
+        }, 100);
+      };
+
       setRecognition(recognitionInstance);
     }
   }, []);
@@ -112,24 +135,39 @@ export default function Assessment() {
     }
   }, [currentQuestion]);
 
-  const handleRecordStart = () => {
-    if (recognition) {
-      setIsRecording(true);
-      setCurrentTranscript("");
-      recognition.start();
+  const handleRecordStart = (e) => {
+    e.preventDefault(); // Prevent default behavior
+    if (recognition && !isRecording) {
+      try {
+        setIsRecording(true);
+        setCurrentTranscript("");
+        recognition.start();
+        console.log("Recording started");
+      } catch (error) {
+        console.error("Error starting recording:", error);
+        setIsRecording(false);
+        alert("Failed to start recording. Please check microphone permissions.");
+      }
     }
   };
 
-  const handleRecordEnd = () => {
-    if (recognition) {
-      setIsRecording(false);
-      recognition.stop();
+  const handleRecordEnd = (e) => {
+    e.preventDefault(); // Prevent default behavior
+    if (recognition && isRecording) {
+      try {
+        recognition.stop();
+        setIsRecording(false);
 
-      const newAnswers = [...answers];
-      newAnswers[currentQuestion] = currentTranscript;
-      setAnswers(newAnswers);
+        // Update answers with the current transcript
+        const newAnswers = [...answers];
+        newAnswers[currentQuestion] = currentTranscript;
+        setAnswers(newAnswers);
 
-      console.log("Updated Answers Array:", newAnswers);
+        console.log("Recording stopped. Updated Answers Array:", newAnswers);
+      } catch (error) {
+        console.error("Error stopping recording:", error);
+        setIsRecording(false);
+      }
     }
   };
 
@@ -167,9 +205,9 @@ export default function Assessment() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-6">
+    <div className="h-full bg-gradient-to-br from-blue-100 to-purple-100 p-6 overflow-y-auto">
       {loading ? (
-        <div className="flex justify-center items-center min-h-screen">
+        <div className="flex justify-center items-center h-full">
           <MoonLoader color="#003ff2" size={90} />
         </div>
       ) : (

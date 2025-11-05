@@ -73,10 +73,12 @@ const ReadFullStoryPage = () => {
     try {
       setIsLoaded(true);
 
-      const response = await axios.post(`${BACKEND_URL}/upload/${sid}`, formData);
+      const response = await axios.post(`${BACKEND_URL}/upload/${sid}`, formData, {
+        withCredentials: true, // Axios uses withCredentials instead of credentials
+      });
       if (response.status === 201) {
         console.log("Audio uploaded successfully");
-        const data = await response.json();
+        const data = response.data; // Axios already parses JSON, use response.data
         setAid(data);
         //console.log("Data is ", aid);
       }
@@ -108,15 +110,17 @@ const ReadFullStoryPage = () => {
   const viewResults = async () => {
     if (!aid) {
       console.error("Error: aid is undefined");
+      alert("Please upload audio first before viewing results.");
       return;
     }
     try {
       const response = await axios.get(`http://127.0.0.1:8000/process-audio/${aid}`);
-      const data = await response.json();
+      const data = response.data; // Axios already parses JSON, use response.data
       console.log(data);
       navigate(`/dashboard/FinalFeedback/${aid}`);
     } catch (error) {
       console.error("Error fetching results:", error);
+      alert("Failed to process audio. Please try again.");
     }
   };
 
@@ -127,8 +131,9 @@ const ReadFullStoryPage = () => {
   `; */
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-indigo-900 to-purple-900">
-      <div className="flex-1 p-8 flex flex-col justify-center items-center">
+    <div className="flex h-full overflow-hidden bg-gradient-to-br from-indigo-900 to-purple-900">
+      {/* Left Half - Fixed Audio Recorder */}
+      <div className="w-1/2 h-full flex items-center justify-center p-8">
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 w-full max-w-md">
           <div className="flex items-center gap-3 mb-8">
             <Volume2 className="w-8 h-8 text-purple-300" />
@@ -182,9 +187,12 @@ const ReadFullStoryPage = () => {
         </div>
       </div>
 
-      <div className="flex-1 bg-white">
-        <div className="h-full p-8 overflow-y-auto">
-          <h2 className="text-3xl font-bold text-gray-800 mb-8">Story</h2>
+      {/* Right Half - Scrollable Story Content */}
+      <div className="w-1/2 h-full bg-white overflow-y-auto">
+        <div className="p-8">
+          <h2 className="text-3xl font-bold text-gray-800 mb-8 sticky top-0 bg-white pb-4 border-b-2 border-gray-200">
+            Story
+          </h2>
           <div className="prose prose-xl max-w-none">
             <p className="text-gray-700 leading-relaxed whitespace-pre-line text-xl font-medium">
               {story}

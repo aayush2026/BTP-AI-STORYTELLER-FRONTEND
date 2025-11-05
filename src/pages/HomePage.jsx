@@ -12,7 +12,7 @@ function HomePage() {
 
   return (
     <>
-      <div className='relative h-screen overflow-hidden'>
+      <div className='relative h-full overflow-hidden'>
         <img
           className="absolute -mt-16 inset-0 -z-10 object-cover scale-x-[-1] opacity-40"
           src={home}

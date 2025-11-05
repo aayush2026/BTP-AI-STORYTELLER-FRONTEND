@@ -17,38 +17,40 @@ function App() {
   const { user } = useContext(UserContext);
 
   return (
-    <div>
+    <div className="h-screen flex flex-col overflow-hidden">
       <Navbar />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route 
-          path="/auth" 
-          element={user ? <DashboardPage /> : <AuthPage />} />
-        <Route
-          path="/dashboard"
-          element={user ? <DashboardPage /> : <AuthPage />}
-        />
-        <Route
-          path="/dashboard/:sid/ReadStory"
-          element={user ? <ReadStoryPage /> : <AuthPage />}
-        />
-        <Route
-          path="/dashboard/:sid/Assessment"
-          element={user ? <AssignmentPage /> : <AuthPage />}
-        />
-        <Route
-          path="/dashboard/Feedback/:sid"
-          element={user ? <FeedbackPage /> : <AuthPage />}
-        />
-        <Route
-          path="/dashboard/ReadFull/:sid"
-          element={user ? <ReadFullStoryPage /> : <AuthPage />}
-        />
-        <Route
-          path="/dashboard/FinalFeedback/:aid"
-          element={user ? <FinalFeedback /> : <AuthPage />}
-        />
-      </Routes>
+      <div className="flex-1 overflow-hidden">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route 
+            path="/auth" 
+            element={user ? <DashboardPage /> : <AuthPage />} />
+          <Route
+            path="/dashboard"
+            element={user ? <DashboardPage /> : <AuthPage />}
+          />
+          <Route
+            path="/dashboard/:sid/ReadStory"
+            element={user ? <ReadStoryPage /> : <AuthPage />}
+          />
+          <Route
+            path="/dashboard/:sid/Assessment"
+            element={user ? <AssignmentPage /> : <AuthPage />}
+          />
+          <Route
+            path="/dashboard/Feedback/:sid"
+            element={user ? <FeedbackPage /> : <AuthPage />}
+          />
+          <Route
+            path="/dashboard/ReadFull/:sid"
+            element={user ? <ReadFullStoryPage /> : <AuthPage />}
+          />
+          <Route
+            path="/dashboard/FinalFeedback/:aid"
+            element={user ? <FinalFeedback /> : <AuthPage />}
+          />
+        </Routes>
+      </div>
     </div>
   );
 }
