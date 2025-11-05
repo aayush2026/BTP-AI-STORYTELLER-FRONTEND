@@ -4,21 +4,20 @@ import { useContext } from "react";
 import { UserContext } from "@/context/UserContext";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function Navbar() {
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const { user, setUser } = useContext(UserContext);
   const navigate = useNavigate();
+  
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   const handleLogout = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/user/logout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
+      const response = await axios.post(`${BACKEND_URL}/api/user/logout`, {}, {
+        withCredentials: true, // Axios uses withCredentials instead of credentials
       });
+
       if (response.status === 200) {
         setUser(null);
         localStorage.removeItem("user");
@@ -36,7 +35,7 @@ function Navbar() {
         <Link to={"/dashboard"}>
           <div className="flex items-center space-x-2">
             <Book className="text-white" size={24} />
-            <span className="text-white text-xl font-bold">BookApp</span>
+            <span className="text-white text-xl font-bold">AI Storyteller</span>
           </div>
         </Link>
         <div className="flex items-center space-x-4">

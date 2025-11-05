@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, ClipboardCheck } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -9,27 +10,28 @@ function ReadStoryPage() {
   const [story, setStory] = useState(null); // Story data
   const { sid } = useParams(); // Story ID from URL params
   const navigate = useNavigate();
+
   // Fetch the story when the component mounts or when `sid` changes
   useEffect(() => {
     const fetchStory = async () => {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/story/getStory/${sid}`, {
-          credentials: "include", // Ensure cookies are sent with the request
+        const response = await axios.get(`${BACKEND_URL}/api/story/getStory/${sid}`, {
+          withCredentials: true, // Axios uses withCredentials instead of credentials
         });
-        if (res.status === 200) {
-          const data = await res.json();
+        if (response.status === 200) {
+          const data = response.data; // Axios already parses JSON, use response.data
           setStory(data.story);
           console.log(data.story); // Debug: log story data
         } else {
-          console.error("Failed to fetch story: ", res.statusText);
+          console.error("Failed to fetch story: ", response.statusText);
         }
       } catch (error) {
         console.error("Error fetching story:", error);
       }
     };
 
-    fetchStory(); // Call the async function inside useEffect
-  }, [sid]); // Dependency array ensures the effect runs when `sid` changes
+    fetchStory();
+  }, [sid]);
 
   const handlePrevious = () => {
     setCurrentPage((prev) => Math.max(0, prev - 1));
@@ -52,6 +54,7 @@ function ReadStoryPage() {
     return <div>Loading story...</div>;
   }
 
+  // Calculate the progress of the story percentage
   const progress = ((currentPage + 1) / story.storyContent.length) * 100;
 
   return (

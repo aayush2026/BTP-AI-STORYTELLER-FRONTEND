@@ -16,7 +16,7 @@ import { MoonLoader } from "react-spinners";
 export default function Assessment() {
   const { sid } = useParams();
   const navigate = useNavigate();
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState(Array(5).fill(""));
   const [isRecording, setIsRecording] = useState(false);
@@ -27,32 +27,31 @@ export default function Assessment() {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `${BACKEND_URL}/api/story/getQuestions/${sid}`,
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
-        const data = await response.json();
-        //setQuestions(data.assignment?.questions);
-        console.log("Fetched questions:", data.assignment?.questions);
-        const arrayOfQuestions = data.assignment?.questions.map(
-          (q) => q.question
-        ); // Assuming `q` has a `question` field
-        setQuestions(arrayOfQuestions || []);
-        setLoading(false);
+        const response = await axios.get(`${BACKEND_URL}/api/story/getQuestions/${sid}`, {
+          withCredentials: true, // Axios uses withCredentials instead of credentials
+        });
+
+        if (response.status === 200) {
+          const data = response.data; // Axios already parses JSON, use response.data
+          console.log("Fetched questions:", data.assignment?.questions);
+          setQuestions(data.assignment?.questions.map(q => q.question) || []);
+          setLoading(false);
+        } else {
+          console.error("Failed to fetch questions: ", response.statusText);
+        }
       } catch (error) {
         console.error("Error fetching questions:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchQuestions();
   }, [sid]);
 
@@ -64,10 +63,13 @@ export default function Assessment() {
     setSpeechSynthesis(window.speechSynthesis);
 
     if ("SpeechRecognition" in window || "webkitSpeechRecognition" in window) {
-      const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
+      // Initialize the speech recognition
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      // Create a new instance of the speech recognition
       const recognitionInstance = new SpeechRecognition();
+      // Set the continuous flag to true
       recognitionInstance.continuous = true;
+      // Set the interim results flag to true
       recognitionInstance.interimResults = true;
 
       recognitionInstance.onresult = (event) => {
@@ -86,7 +88,6 @@ export default function Assessment() {
         );
         console.log("Word count:", wordCount);
       };
-
       setRecognition(recognitionInstance);
     }
   }, []);
