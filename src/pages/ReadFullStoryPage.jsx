@@ -63,29 +63,68 @@ const ReadFullStoryPage = () => {
   };
 
   const uploadAudio = async () => {
-    const formData = new FormData();
-    formData.append(
-      "audio",
-      new Blob([audioBlob], { type: "audio/wav" }),
-      "recording.wav"
-    );
+    if (!audioBlob) {
+      alert("Please record audio first");
+      return;
+    }
 
     try {
       setIsLoaded(true);
 
-      const response = await axios.post(`${BACKEND_URL}/upload/${sid}`, formData, {
-        withCredentials: true, // Axios uses withCredentials instead of credentials
+      // Step 1: Get pre-signed upload URL from backend
+      console.log("📡 Step 1: Requesting pre-signed upload URL...");
+      const urlResponse = await axios.get(
+        `${BACKEND_URL}/api/audio/upload-url/${sid}`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      const { uploadUrl, key } = urlResponse.data;
+      console.log("✅ Received upload URL, S3 key:", key);
+
+      // Step 2: Upload audio directly to S3 using pre-signed URL
+      console.log("📤 Step 2: Uploading audio directly to S3...");
+      const audioFile = new Blob([audioBlob], { type: "audio/wav" });
+
+      const s3UploadResponse = await fetch(uploadUrl, {
+        method: "PUT",
+        body: audioFile,
+        headers: {
+          "Content-Type": "audio/wav",
+        },
       });
-      if (response.status === 201) {
-        console.log("Audio uploaded successfully");
-        const data = response.data; // Axios already parses JSON, use response.data
-        setAid(data);
-        //console.log("Data is ", aid);
+
+      if (!s3UploadResponse.ok) {
+        throw new Error(`S3 upload failed: ${s3UploadResponse.statusText}`);
       }
-      alert("Audio uploaded successfully");
-      //window.location.reload();
+
+      console.log("✅ Audio uploaded to S3 successfully");
+
+      // Step 3: Confirm upload with backend to save metadata in MongoDB
+      console.log("💾 Step 3: Saving metadata to MongoDB...");
+      const confirmResponse = await axios.post(
+        `${BACKEND_URL}/api/audio/confirm-upload/${sid}`,
+        {
+          s3Key: key,
+          fileName: "recording.wav",
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (confirmResponse.status === 201) {
+        const { audioId } = confirmResponse.data;
+        setAid(audioId);
+        console.log("✅ Audio metadata saved, ID:", audioId);
+        alert("Audio uploaded successfully to S3! 🎉");
+      }
     } catch (error) {
-      console.error("Error uploading audio:", error);
+      console.error("❌ Error uploading audio:", error);
+      alert(
+        "Failed to upload audio. Please check console for details."
+      );
     } finally {
       setIsLoaded(false);
     }
