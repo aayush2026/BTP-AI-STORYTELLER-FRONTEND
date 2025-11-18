@@ -17,6 +17,7 @@ const ReadFullStoryPage = () => {
   const navigate = useNavigate();
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  const PY_SERVICE_URL = import.meta.env.VITE_PY_SERVICE_URL;
 
   useEffect(() => {
     const getStory = async () => {
@@ -153,7 +154,7 @@ const ReadFullStoryPage = () => {
       return;
     }
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/process-audio/${aid}`);
+      const response = await axios.get(`${PY_SERVICE_URL}/process-audio/${aid}`);
       const data = response.data; // Axios already parses JSON, use response.data
       console.log(data);
       navigate(`/dashboard/FinalFeedback/${aid}`);
